@@ -13,6 +13,8 @@ class Fence():
 
 
     def init_coords(self):
+        self.max_x = self.pos.x + self.width - 1
+        self.max_y = self.pos.y + self.height - 1
         self.coordinates = set()
 
         for row in xrange(self.height):
@@ -45,7 +47,28 @@ class Solver():
 
     def solve(self):
         fence = Fence(self.land_width, self.land_height, Point(0,0))
-        
+
+        while fence.is_in_marsh(marsh):
+            if fence.max_x == self.max_x and fence.max_y == self.max_y:
+                # reduce fence size and start over
+                if fence.width > fence.height:
+                    fence = Fence(fence.width - 1, fence.height, Point(0,0))
+                else:
+                    fence = Fence(fence.width, fence.height - 1, Point(0,0))
+
+                if fence.width < 2 or fence.height < 2: # impossible case
+                    fence = None
+                    break
+            else:
+                if fence.max_x + 1 <= self.max_x:
+                    fence.set_position(Point(fence.pos.x + 1, fence.pos.y))
+                else:
+                    fence.set_position(Point(0, fence.pos.y + 1))
+
+        if fence is None:
+            print 'impossible'
+        else:
+            print fence.coordinates
 
 
 def init_marsh():
@@ -71,12 +94,14 @@ if __name__ == '__main__':
     land_height = land_dims[0]
     land_width = land_dims[1]
     marsh = init_marsh()
+    solver = Solver(land_width, land_height, marsh)
+    solver.solve()
 
-    fence1 = Fence(land_width, land_height, Point(0,0))
-    fence2 = Fence(land_width, land_height - 2, Point(0,2))
+    #fence1 = Fence(land_width, land_height, Point(0,0))
+    #fence2 = Fence(land_width, land_height - 2, Point(0,2))
 
-    print 'fence1 in marsh:', fence1.is_in_marsh(marsh)
-    print 'fence2 in marsh:', fence2.is_in_marsh(marsh)
+    #print 'fence1 in marsh:', fence1.is_in_marsh(marsh)
+    #print 'fence2 in marsh:', fence2.is_in_marsh(marsh)
 
     #print marsh
     #print fence.coordinates
