@@ -23,6 +23,28 @@ class Fence():
                 self.coordinates.update(
                         [ Point(xcoord, self.pos.y + row) for xcoord in
                           xrange(self.pos.x + 1, self.pos.x + self.width - 1) ])
+
+
+    def is_in_marsh(self, marsh):
+        return not self.coordinates.isdisjoint(marsh) 
+
+
+    def set_position(self, pos):
+        self.pos = pos
+        self.init_coords()
+        
+
+class Solver():
+    def __init__(self, land_width, land_height, marsh):
+        self.land_width = land_width
+        self.land_height = land_height
+        self.max_x = land_width - 1
+        self.max_y = land_height - 1
+        self.marsh = marsh
+
+
+    def solve(self):
+        fence = Fence(self.land_width, self.land_height, Point(0,0))
         
 
 
@@ -46,8 +68,15 @@ def init_marsh():
 
 if __name__ == '__main__':
     land_dims = [ int(n) for n in sys.stdin.readline().strip().split() ]
+    land_height = land_dims[0]
+    land_width = land_dims[1]
     marsh = init_marsh()
-    fence = Fence(4, 2, Point(0,0))
 
-    print marsh
-    print fence.coordinates
+    fence1 = Fence(land_width, land_height, Point(0,0))
+    fence2 = Fence(land_width, land_height - 2, Point(0,2))
+
+    print 'fence1 in marsh:', fence1.is_in_marsh(marsh)
+    print 'fence2 in marsh:', fence2.is_in_marsh(marsh)
+
+    #print marsh
+    #print fence.coordinates
