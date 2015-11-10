@@ -3,6 +3,13 @@ from collections import namedtuple
 
 Point = namedtuple('Point', ['x', 'y'])
 
+def perimeter(width, height):
+    if width < 2 or height < 2:
+        return 0
+    else:
+        return 2*(width - 1) + 2*(height - 1)
+
+
 class Fence():
     def __init__(self, width, height, pos):
         '''pos is a Point representing upper leftmost coordinate.'''
@@ -36,7 +43,7 @@ class Fence():
         self.init_coords()
 
     def perimeter(self):
-        return 2*(self.width - 1) + 2*(self.height - 1)
+        return perimeter(self.width, self.height)
 
     def __lt__(self, other):
         return self.perimeter() < other.perimeter()
@@ -45,7 +52,6 @@ class Fence():
         return hash(repr(self))
 
     def __str__(self):
-        #return 'Fence(width=%d, height=%d): %s' % (self.width, self.height, self.coordinates)
         return 'Fence(width=%d, height=%d, pos=%s)' % (self.width, self.height, self.pos)
 
 
@@ -61,7 +67,8 @@ class Solver():
     def solve(self):
         solution = None
 
-        for fence in reversed(fences):
+        #for fence in reversed(fences):
+        for fence in xfences(land_width, land_height):
             while fence.max_y <= self.max_y:
                 if not fence.is_in_marsh(marsh):
                     solution = fence
@@ -73,24 +80,6 @@ class Solver():
                         fence.set_position(Point(0, fence.pos.y + 1))
 
             if solution: break
-
-
-        #while fence.is_in_marsh(marsh):
-        #    if fence.max_x == self.max_x and fence.max_y == self.max_y:
-        #        # reduce fence size and start over
-        #        if fence.width > fence.height:
-        #            fence = Fence(fence.width - 1, fence.height, Point(0,0))
-        #        else:
-        #            fence = Fence(fence.width, fence.height - 1, Point(0,0))
-
-        #        if fence.width < 2 or fence.height < 2: # impossible case
-        #            fence = None
-        #            break
-        #    else:
-        #        if fence.max_x + 1 <= self.max_x:
-        #            fence.set_position(Point(fence.pos.x + 1, fence.pos.y))
-        #        else:
-        #            fence.set_position(Point(0, fence.pos.y + 1))
 
         if solution is None:
             print 'impossible'
@@ -127,6 +116,39 @@ def init_fences(land_width, land_height):
     return sorted(fence_set)
 
 
+def xfences(land_width, land_height):
+    tried = set()
+    next_tries = []
+
+    cur = Point(land_width, land_height)
+
+    while True:
+        if perimeter(cur.x, cur.y) >= 4:
+            yield Fence(cur.x, cur.y, Point(0,0))
+        else:
+            break
+
+        tried.add(cur)
+
+        cand1 = Point(cur.x - 1, cur.y)
+        if (cand1 not in tried) and cand1 not in next_tries and perimeter(cand1.x,cand1.y) >= 4:
+            next_tries.append(cand1)
+
+        cand2 = Point(cur.x, cur.y - 1)
+        if (cand2 not in tried) and cand2 not in next_tries and perimeter(cand2.x,cand2.y) >= 4:
+            next_tries.append(cand2)
+
+        cand3 = Point(cur.x - 1, cur.y - 1)
+        if (cand3 not in tried) and cand3 not in next_tries and perimeter(cand3.x,cand3.y) >= 4:
+            next_tries.append(cand3)
+            
+        next_tries = sorted(next_tries, key=lambda p: perimeter(p.x,p.y))
+        if len(next_tries) == 0:
+            break
+
+        cur = next_tries.pop()
+
+
 if __name__ == '__main__':
     land_dims = [ int(n) for n in sys.stdin.readline().strip().split() ]
     land_height = land_dims[0]
@@ -134,17 +156,5 @@ if __name__ == '__main__':
     marsh = init_marsh()
     fences = init_fences(land_width, land_height)
 
-    #for f in fences:
-    #    print f
-
     solver = Solver(land_width, land_height, marsh, fences)
     solver.solve()
-
-    #fence1 = Fence(land_width, land_height, Point(0,0))
-    #fence2 = Fence(land_width, land_height - 2, Point(0,2))
-
-    #print 'fence1 in marsh:', fence1.is_in_marsh(marsh)
-    #print 'fence2 in marsh:', fence2.is_in_marsh(marsh)
-
-    #print marsh
-    #print fence.coordinates
